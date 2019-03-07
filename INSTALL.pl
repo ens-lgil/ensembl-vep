@@ -135,7 +135,7 @@ my @API_MODULES = (
   { name => 'ensembl',           path => '',          test_pm => 'Bio::EnsEMBL::Registry' },
   { name => 'ensembl-variation', path => 'Variation', test_pm => 'Bio::EnsEMBL::Variation::Variation' },
   { name => 'ensembl-funcgen',   path => 'Funcgen',   test_pm => 'Bio::EnsEMBL::Funcgen::RegulatoryFeature' },
-  { name => 'ensembl-io',        path => 'IO',        test_pm => 'Bio::EnsEMBL::IO::Parser' },
+  { name => 'ensembl-io',        path => 'IO,Utils',  test_pm => 'Bio::EnsEMBL::IO::Parser' },
 );
 my $ensembl_url_tail = '/archive/';
 my $archive_type = '.zip';
@@ -663,7 +663,6 @@ sub install_api() {
 
   foreach my $module_hash(@API_MODULES) {
     my $module = $module_hash->{name};
-    my $module_dir_suffix = $module_hash->{path} ? '/'.$module_hash->{path} : '';
 
     # do we need to update this?
     my $have_sub = $CURRENT_VERSION_DATA->{$module} ? ($CURRENT_VERSION_DATA->{$module}->{sub} || '') : '';
@@ -679,11 +678,22 @@ sub install_api() {
     unpack_arch("$DEST_DIR/tmp/$module$archive_type", "$DEST_DIR/tmp/");
 
     print " - moving files\n" unless $QUIET;
+    foreach my $module_path (split(',',$module_hash->{path})) {
+      my $module_dir_suffix = $module_hash->{path} ? '/'.$module_hash->{path} : '';
 
-    move(
-      "$DEST_DIR/tmp/$module\-$release_path_string/modules/Bio/EnsEMBL$module_dir_suffix",
-      "$DEST_DIR/EnsEMBL$module_dir_suffix"
-    ) or die "ERROR: Could not move directory\n".$!;
+      if (-d $DEST_DIR/EnsEMBL$module_dir_suffix) {
+        move(
+          "$DEST_DIR/tmp/$module\-$release_path_string/modules/Bio/EnsEMBL$module_dir_suffix/*",
+          "$DEST_DIR/EnsEMBL$module_dir_suffix/"
+        ) or die "ERROR: Could not move the content of the directory '$module_dir_suffix'\n".$!;
+      }
+      else {
+        move(
+          "$DEST_DIR/tmp/$module\-$release_path_string/modules/Bio/EnsEMBL$module_dir_suffix",
+          "$DEST_DIR/EnsEMBL$module_dir_suffix"
+        ) or die "ERROR: Could not move directory '$module_dir_suffix'\n".$!;
+      }
+    }
 
     # now get latest commit from github API
     print " - getting version information\n" unless $QUIET;
