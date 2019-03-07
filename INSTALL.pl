@@ -681,7 +681,7 @@ sub install_api() {
     foreach my $module_path (split(',',$module_hash->{path})) {
       my $module_dir_suffix = $module_hash->{path} ? '/'.$module_hash->{path} : '';
 
-      if (-d $DEST_DIR/EnsEMBL$module_dir_suffix) {
+      if (-d "$DEST_DIR/EnsEMBL$module_dir_suffix") {
         move(
           "$DEST_DIR/tmp/$module\-$release_path_string/modules/Bio/EnsEMBL$module_dir_suffix/*",
           "$DEST_DIR/EnsEMBL$module_dir_suffix/"
