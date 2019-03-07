@@ -688,7 +688,8 @@ sub install_api() {
         # One solution is to move the content of the directory instead.
         # However we need to loop over the files/directories within the module directory because the 'move()' method doesn't allow wildcards.
         opendir DH, $module_dir_from;
-        while(my $file_or_dir = readdir DH)    {
+        while(my $file_or_dir = readdir DH) {
+          next if ($file_or_dir =~ /^\.+$/);
           move("$module_dir_from/$file_or_dir", "$module_dir_to/$file_or_dir") or die "ERROR: Could not move '$module_dir_from/$file_or_dir'\n".$!;
         }
         closedir DH;
