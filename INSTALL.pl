@@ -679,7 +679,7 @@ sub install_api() {
 
     print " - moving files\n" unless $QUIET;
     foreach my $module_path (split(',',$module_hash->{path})) {
-      my $module_dir_suffix = $module_hash->{path} ? '/'.$module_hash->{path} : '';
+      my $module_dir_suffix = $module_path ? '/'.$module_path : '';
 
       if (-d "$DEST_DIR/EnsEMBL$module_dir_suffix") {
         move(
