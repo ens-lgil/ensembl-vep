@@ -680,18 +680,21 @@ sub install_api() {
     print " - moving files\n" unless $QUIET;
     foreach my $module_path (split(',',$module_hash->{path})) {
       my $module_dir_suffix = $module_path eq ' ' ? '' : '/'.$module_path;
-
-      if (-d "$DEST_DIR/EnsEMBL$module_dir_suffix") {
-        move(
-          "$DEST_DIR/tmp/$module\-$release_path_string/modules/Bio/EnsEMBL$module_dir_suffix/*",
-          "$DEST_DIR/EnsEMBL$module_dir_suffix/"
-        ) or die "ERROR: Could not move the content of the directory '$module_dir_suffix'\n".$!;
+      my $module_dir_from   = "$DEST_DIR/tmp/$module\-$release_path_string/modules/Bio/EnsEMBL$module_dir_suffix";
+      my $module_dir_to     = "$DEST_DIR/EnsEMBL$module_dir_suffix";
+      
+      # If the target directory already exist, we can't overwrite it.
+      if (-d $module_dir_to) {
+        # One solution is to move the content of the directory instead.
+        # However we need to loop over the files/directories within the module directory because the 'move()' method doesn't allow wildcards.
+        opendir DH, $module_dir_from;
+        while(my $file_or_dir = readdir DH)    {
+          move("$module_dir_from/$file_or_dir", "$module_dir_to/$file_or_dir") or die "ERROR: Could not move '$module_dir_from/$file_or_dir'\n".$!;
+        }
+        closedir DH;
       }
       else {
-        move(
-          "$DEST_DIR/tmp/$module\-$release_path_string/modules/Bio/EnsEMBL$module_dir_suffix",
-          "$DEST_DIR/EnsEMBL$module_dir_suffix"
-        ) or die "ERROR: Could not move directory '$module_dir_suffix'\n".$!;
+        move($module_dir_from, $module_dir_to) or die "ERROR: Could not move the directory '$module_dir_from'\n".$!;
       }
     }
 
