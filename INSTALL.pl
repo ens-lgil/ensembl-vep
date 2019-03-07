@@ -132,7 +132,7 @@ $| = 1;
 
 # other global data
 my @API_MODULES = (
-  { name => 'ensembl',           path => '',          test_pm => 'Bio::EnsEMBL::Registry' },
+  { name => 'ensembl',           path => ' ',         test_pm => 'Bio::EnsEMBL::Registry' },
   { name => 'ensembl-variation', path => 'Variation', test_pm => 'Bio::EnsEMBL::Variation::Variation' },
   { name => 'ensembl-funcgen',   path => 'Funcgen',   test_pm => 'Bio::EnsEMBL::Funcgen::RegulatoryFeature' },
   { name => 'ensembl-io',        path => 'IO,Utils',  test_pm => 'Bio::EnsEMBL::IO::Parser' },
@@ -679,7 +679,7 @@ sub install_api() {
 
     print " - moving files\n" unless $QUIET;
     foreach my $module_path (split(',',$module_hash->{path})) {
-      my $module_dir_suffix = $module_path ? '/'.$module_path : '';
+      my $module_dir_suffix = $module_path eq ' ' ? '' : '/'.$module_path;
 
       if (-d "$DEST_DIR/EnsEMBL$module_dir_suffix") {
         move(
