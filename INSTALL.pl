@@ -342,32 +342,32 @@ sub update() {
     ) unless $git_sub eq $have_sub;
   }
 
-  if($message) {
-    print "\n$message\n";
+  #if($message) {
+  #  print "\n$message\n";
 
-    # user has git, suggest they use that instead
-    if(`which git` && -d $RealBin.'/.git') {
-      print "You may use git to update $module by exiting this installer and running:\n\n";
-      print "git pull\n";
-      print "git checkout $default_branch\n" if $current_branch ne $default_branch_number;
-    }
-    else {
-      print "You should exit this installer and re-download $module if you wish to update\n";
-    }
+  #  # user has git, suggest they use that instead
+  #  if(`which git` && -d $RealBin.'/.git') {
+  #    print "You may use git to update $module by exiting this installer and running:\n\n";
+  #    print "git pull\n";
+  #    print "git checkout $default_branch\n" if $current_branch ne $default_branch_number;
+  #  }
+  #  else {
+  #    print "You should exit this installer and re-download $module if you wish to update\n";
+  #  }
+#
+#    print "\nDo you wish to exit so you can get updates (y) or continue (n): ";
 
-    print "\nDo you wish to exit so you can get updates (y) or continue (n): ";
-
-    my $ok = <>;
-
-    if($ok !~ /^n/i) {
-      print "OK, bye!\n";
-      print "\nNB: Remember to re-run INSTALL.pl after updating to check for API updates\n";
-      exit(0);
-    }
-  }
-  else {
+#    my $ok = <>;
+#
+#    if($ok !~ /^n/i) {
+#      print "OK, bye!\n";
+#      print "\nNB: Remember to re-run INSTALL.pl after updating to check for API updates\n";
+#      exit(0);
+#    }
+#  }
+#  else {
     return;
-  }
+#  }
 }
 
 
