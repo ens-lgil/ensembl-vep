@@ -5,7 +5,7 @@
 [![Docker Hub Pulls](https://img.shields.io/docker/pulls/ensemblorg/ensembl-vep.svg)](https://hub.docker.com/r/ensemblorg/ensembl-vep)
 [![Github All Releases](https://img.shields.io/github/downloads/Ensembl/ensembl-vep/total.svg)](https://github.com/Ensembl/ensembl-vep)
 ![Downloads](https://github-basic-badges.herokuapp.com/downloads/Ensembl/ensembl-vep/total.svg)
-![GitHub](https://img.shields.io/github/license/Ensembl/ensembl-vep.svg)
+[![GitHub](https://img.shields.io/github/license/Ensembl/ensembl-vep.svg)](https://github.com/Ensembl/ensembl-vep/blob/master/LICENSE)
 
 
 * **VEP** (Variant Effect Predictor) predicts the functional effects of genomic variants.
