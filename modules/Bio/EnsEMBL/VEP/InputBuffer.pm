@@ -205,10 +205,8 @@ sub next {
       # skip long and unsupported types of SV; doing this here to avoid stopping looping
       next if $vf->{vep_skip};
 
-      print STDOUT "# New buffer\n" if (!$prev_chr);
-      print STDOUT "Chromosome ".$vf->{chr}."\n" if (!$prev_chr);
-
-      if (!$self->param('no_check_locations_order') &&
+      # exit the program if the maximum number of variants not ordered in the input file is reached
+      if (!$self->param('no_check_variants_order') &&
           $self->{count_not_ordered_variants} &&
           $self->{count_not_ordered_variants} > $self->{max_not_ordered_variants}
       ) {
@@ -218,7 +216,6 @@ sub next {
       # new chromosome
       if($prev_chr && $vf->{chr} ne $prev_chr) {
 
-        print STDOUT $vf->{chr}.":\n";
         # we can't push the VF back onto the parser, so add it to $pre_buffer
         # and it will get picked up on the following next() call
         push @$pre_buffer, $vf;
@@ -232,18 +229,16 @@ sub next {
       else {
         push @$buffer, $vf;
         $prev_chr = $vf->{chr};
-        print STDOUT "\tPARSED LINE: ".$vf->{chr}."-".$vf->{start}."\n";
-        if ($prev_start > $vf->{start} && !$self->param('no_check_locations_order')) {
+        if ($prev_start > $vf->{start} && !$self->param('no_check_variants_order')) {
           $self->{count_not_ordered_variants} ++;
-          print STDOUT "\t\t/!\\ ORDERING WRONG: $prev_start > ".$vf->{start}." /!\\\n";
-          print STDOUT "\t\t>>>>> NEW NOT ORDERED COUNT: ".$self->{count_not_ordered_variants}."\n";
         }
         $prev_start = $vf->{start};
       }
     }
   }
 
-  if (!$self->param('no_check_locations_order') &&
+  # exit the program if the maximum number of variants not ordered in the input file is reached (second point of exit)
+  if (!$self->param('no_check_variants_order') &&
       $self->{count_not_ordered_variants} &&
       $self->{count_not_ordered_variants} > $self->{max_not_ordered_variants}
   ) {

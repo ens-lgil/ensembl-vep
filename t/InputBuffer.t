@@ -487,5 +487,18 @@ $ib->next();
 $ib->next();
 dies_ok {$ib->next()} "die - Exiting the program as the maximun number of unsorted variants as been reached ($max_non_ordered_variants).";
 
+
+# Check non ordered file
+my $cfg3 = Bio::EnsEMBL::VEP::Config->new({%{$test_cfg->base_testing_cfg}, buffer_size => 100, no_check_variants_order => 1});
+$p = Bio::EnsEMBL::VEP::Parser::VCF->new({config => $cfg3, file => $test_cfg->{not_ord_vcf}, valid_chromosomes => [1,21,22]});
+$ib = Bio::EnsEMBL::VEP::InputBuffer->new({config => $cfg3, parser => $p});
+
+$ib->next();
+$ib->next();
+eval {
+  $ib->next();
+};
+ok(!$@, "Skip the count for non ordered variants with the flag 'no_check_variants_order'");
+
 # done
 done_testing();
