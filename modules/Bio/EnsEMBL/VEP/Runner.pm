@@ -358,6 +358,7 @@ sub next_output_line {
   $self->_set_package_variables();
 
   if($self->param('fork')) {
+  print STDOUT "\n>>>> new fork\n";
     push @$output_buffer, @{$self->_forked_buffer_to_output($self->get_InputBuffer, $output_as_hash)};
   }
   else {

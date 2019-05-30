@@ -74,6 +74,7 @@ use Bio::EnsEMBL::Variation::Utils::Sequence qw(trim_sequences);
 
 our $HASH_TREE_SIZE = 1e4;
 our $CAN_USE_INTERVAL_TREE;
+our $MAX_NOT_ORDERED = 50;
 
 BEGIN {
   if (eval q{ require Set::IntervalTree; 1 }) {
@@ -177,7 +178,9 @@ sub next {
   # from more than one chromosome, so we "shortcut" out
   # filling the buffer before it hits $buffer_size.
   my $prev_chr;
-
+  my $prev_start = 0;
+  my $not_ordered_count = 0;
+  
   while(@$pre_buffer && @$buffer < $buffer_size) {
     my $vf = $pre_buffer->[0];
     
@@ -193,21 +196,26 @@ sub next {
       $prev_chr = $vf->{chr};
     }
   }
-
+  
   if(my $parser = $self->parser) {
     while(@$buffer < $buffer_size && (my $vf = $parser->next)) {
+      print STDOUT "# New buffer\n" if (!$prev_chr);
+      print STDOUT "Chromosome ".$vf->{chr}."\n" if (!$prev_chr);
 
-      # skip long and unsupported types of SV; doing this here to avoid stopping looping
-      next if $vf->{vep_skip};
+      if (!$self->param('no_check_locations_order') && $self->{non_ordered_variants_count} && $self->{non_ordered_variants_count} > $MAX_NOT_ORDERED) {
+        die("Too many non ordered entries (".$self->{non_ordered_variants_count}." > $MAX_NOT_ORDERED)!\n");
+      }
 
       # new chromosome
       if($prev_chr && $vf->{chr} ne $prev_chr) {
 
+        print STDOUT $vf->{chr}.":\n";
         # we can't push the VF back onto the parser, so add it to $pre_buffer
         # and it will get picked up on the following next() call
         push @$pre_buffer, $vf;
         
         $self->split_variants() if $self->{minimal};
+        $prev_start = 0;
         return $buffer;
       }
 
@@ -215,10 +223,24 @@ sub next {
       else {
         push @$buffer, $vf;
         $prev_chr = $vf->{chr};
+        print STDOUT "\tPARSED LINE: ".$vf->{chr}."-".$vf->{start}."\n";
+        if ($prev_start > $vf->{start} && !$self->param('no_check_locations_order')) {
+          $self->{non_ordered_variants_count} ++;
+          print STDOUT "\t\t/!\\ ORDERING WRONG: $prev_start > ".$vf->{start}." /!\\\n";
+          print STDOUT "\t\t>>>>> NEW NOT ORDERED COUNT: ".$self->{non_ordered_variants_count}."\n";
+        }
+        $prev_start = $vf->{start};
       }
+      
     }
   }
-
+  
+  #print STDOUT "\tNOT ORDERED COUNT: ".$self->{non_ordered_variants_count}."\n";
+  if (!$self->param('no_check_locations_order')) {
+    if ($self->{non_ordered_variants_count} > $MAX_NOT_ORDERED) {
+      die("Too many non ordered entries (".$self->{non_ordered_variants_count}." > $MAX_NOT_ORDERED)!\n");
+    }
+  }
   $self->split_variants() if $self->{minimal};
 
   return $buffer;
