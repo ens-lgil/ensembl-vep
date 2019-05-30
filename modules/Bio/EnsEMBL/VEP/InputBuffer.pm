@@ -75,7 +75,6 @@ use Bio::EnsEMBL::Variation::Utils::Sequence qw(trim_sequences);
 
 our $HASH_TREE_SIZE = 1e4;
 our $CAN_USE_INTERVAL_TREE;
-our $MAX_NOT_ORDERED_VARIANTS = $Bio::EnsEMBL::VEP::Constants::MAX_NOT_ORDERED_VARIANTS;
 
 BEGIN {
   if (eval q{ require Set::IntervalTree; 1 }) {
@@ -120,7 +119,10 @@ sub new {
       my $buffer = $self->pre_buffer;
       push @$buffer, @{$hashref->{variation_features}};
     }
+
+    $self->{max_not_ordered_variants} = $hashref->{max_not_ordered_variants} if $hashref->{max_not_ordered_variants};
   }
+  $self->{max_not_ordered_variants} = $Bio::EnsEMBL::VEP::Constants::MAX_NOT_ORDERED_VARIANTS if (!$self->{max_not_ordered_variants});
 
   return $self;
 }
@@ -207,8 +209,8 @@ sub next {
       print STDOUT "Chromosome ".$vf->{chr}."\n" if (!$prev_chr);
 
       if (!$self->param('no_check_locations_order') &&
-          $self->{non_ordered_variants_count} &&
-          $self->{non_ordered_variants_count} > $MAX_NOT_ORDERED_VARIANTS
+          $self->{count_not_ordered_variants} &&
+          $self->{count_not_ordered_variants} > $self->{max_not_ordered_variants}
       ) {
         die("Exiting the program. The input file appears to be unsorted. Please sort and re-submit.\n");
       }
@@ -232,9 +234,9 @@ sub next {
         $prev_chr = $vf->{chr};
         print STDOUT "\tPARSED LINE: ".$vf->{chr}."-".$vf->{start}."\n";
         if ($prev_start > $vf->{start} && !$self->param('no_check_locations_order')) {
-          $self->{non_ordered_variants_count} ++;
+          $self->{count_not_ordered_variants} ++;
           print STDOUT "\t\t/!\\ ORDERING WRONG: $prev_start > ".$vf->{start}." /!\\\n";
-          print STDOUT "\t\t>>>>> NEW NOT ORDERED COUNT: ".$self->{non_ordered_variants_count}."\n";
+          print STDOUT "\t\t>>>>> NEW NOT ORDERED COUNT: ".$self->{count_not_ordered_variants}."\n";
         }
         $prev_start = $vf->{start};
       }
@@ -242,8 +244,8 @@ sub next {
   }
 
   if (!$self->param('no_check_locations_order') &&
-      $self->{non_ordered_variants_count} &&
-      $self->{non_ordered_variants_count} > $MAX_NOT_ORDERED_VARIANTS
+      $self->{count_not_ordered_variants} &&
+      $self->{count_not_ordered_variants} > $self->{max_not_ordered_variants}
   ) {
     die("Exiting the program. The input file appears to be unsorted. Please sort and re-submit.\n");
   }
