@@ -72,9 +72,10 @@ use Bio::EnsEMBL::Utils::Exception qw(throw warning);
 use Bio::EnsEMBL::Variation::Utils::VariationEffect qw(overlap);
 use Bio::EnsEMBL::Variation::Utils::Sequence qw(trim_sequences);
 
+
 our $HASH_TREE_SIZE = 1e4;
 our $CAN_USE_INTERVAL_TREE;
-our $MAX_NOT_ORDERED = 50;
+our $MAX_NOT_ORDERED_VARIANTS = $Bio::EnsEMBL::VEP::Constants::MAX_NOT_ORDERED_VARIANTS;
 
 BEGIN {
   if (eval q{ require Set::IntervalTree; 1 }) {
@@ -179,7 +180,6 @@ sub next {
   # filling the buffer before it hits $buffer_size.
   my $prev_chr;
   my $prev_start = 0;
-  my $not_ordered_count = 0;
   
   while(@$pre_buffer && @$buffer < $buffer_size) {
     my $vf = $pre_buffer->[0];
@@ -199,11 +199,18 @@ sub next {
   
   if(my $parser = $self->parser) {
     while(@$buffer < $buffer_size && (my $vf = $parser->next)) {
+
+      # skip long and unsupported types of SV; doing this here to avoid stopping looping
+      next if $vf->{vep_skip};
+
       print STDOUT "# New buffer\n" if (!$prev_chr);
       print STDOUT "Chromosome ".$vf->{chr}."\n" if (!$prev_chr);
 
-      if (!$self->param('no_check_locations_order') && $self->{non_ordered_variants_count} && $self->{non_ordered_variants_count} > $MAX_NOT_ORDERED) {
-        die("Too many non ordered entries (".$self->{non_ordered_variants_count}." > $MAX_NOT_ORDERED)!\n");
+      if (!$self->param('no_check_locations_order') &&
+          $self->{non_ordered_variants_count} &&
+          $self->{non_ordered_variants_count} > $MAX_NOT_ORDERED_VARIANTS
+      ) {
+        die("Exiting the program. The input file appears to be unsorted. Please sort and re-submit.\n");
       }
 
       # new chromosome
@@ -231,16 +238,16 @@ sub next {
         }
         $prev_start = $vf->{start};
       }
-      
     }
   }
-  
-  #print STDOUT "\tNOT ORDERED COUNT: ".$self->{non_ordered_variants_count}."\n";
-  if (!$self->param('no_check_locations_order')) {
-    if ($self->{non_ordered_variants_count} > $MAX_NOT_ORDERED) {
-      die("Too many non ordered entries (".$self->{non_ordered_variants_count}." > $MAX_NOT_ORDERED)!\n");
-    }
+
+  if (!$self->param('no_check_locations_order') &&
+      $self->{non_ordered_variants_count} &&
+      $self->{non_ordered_variants_count} > $MAX_NOT_ORDERED_VARIANTS
+  ) {
+    die("Exiting the program. The input file appears to be unsorted. Please sort and re-submit.\n");
   }
+
   $self->split_variants() if $self->{minimal};
 
   return $buffer;
