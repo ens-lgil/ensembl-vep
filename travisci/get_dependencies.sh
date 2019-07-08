@@ -12,7 +12,7 @@ fi
 
 echo 'Getting Bio::DB::HTS'
 if [ ! -d Bio-HTS ]; then
-  git clone --branch release/v3.0 --depth 1 https://github.com/Ensembl/Bio-HTS.git
+  git clone --branch release/v3.01 --depth 1 https://github.com/Ensembl/Bio-HTS.git
 fi
 
 echo 'Getting jksrc'
